@@ -3,7 +3,9 @@
 
 #include <vector>
 #include <utility>
-#include "matrix_generator.h"
+
+using Vector = std::vector<double>;
+using Matrix = std::vector<std::vector<double>>;
 
 std::pair<Vector, int> preconditioned_conjugate_gradient(
     const Matrix& A,

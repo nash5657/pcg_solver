@@ -6,10 +6,10 @@
 
 void matvec(const Matrix& A, const Vector& x, Vector& result) {
     int n = A.size();
-    result = Vector::Zero(n);
+    result.assign(n, 0.0);
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
-            result[i] += A.coeff(i, j) * x[j];
+            result[i] += A[i][j] * x[j];
         }
     }
 }
@@ -30,7 +30,7 @@ std::pair<Vector, int> preconditioned_conjugate_gradient(
     double tol
 ) {
     int n = b.size();
-    Vector x(n, 0);  // Initial guess x0 = 0
+    Vector x(n, 0.0);  // Initial guess x0 = 0
     Vector r(n), y(n), p(n), z(n);
 
     matvec(A, x, r);
@@ -75,37 +75,15 @@ std::pair<Vector, int> preconditioned_conjugate_gradient(
 }
 
 int main() {
-    int n = 100; // Default size of the system
-    bool useFile = false; // Flag to toggle between file input and generated matrix
+    int n = 1000; // Size of the system
 
-    std::cout << "Load matrix from file? (1 for yes, 0 for no): ";
-    // std::cin >> useFile;
-
-    Matrix A;
-    Vector b;
-
-    if (useFile) {
-        std::string filename;
-        std::cout << "Enter the matrix file name (e.g., s3dkq4m2.mtx): ";
-        std::cin >> filename;
-
-        try {
-            A = read_matrix_from_file(filename);
-            n = A.size(); // Adjust size based on file
-            b = Vector(n, 1); // Adjust vector `b` as needed
-        } catch (const std::exception& e) {
-            std::cerr << "Error reading matrix from file: " << e.what() << std::endl;
-            return 1;
-        }
-    } else {
-        A = generate_matrix_A(n);
-        b = generate_vector_b(n);
-    }
+    auto A = generate_matrix_A(n);
+    auto b = generate_vector_b(n);
 
     // Use Incomplete Cholesky preconditioner
     Matrix M_inv = generate_incomplete_cholesky_preconditioner(A);
 
-    // Uncomment to use Diagonal preconditioner (Jacobi preconditioner)
+    //Use Jacobi preconditioner
     //Matrix M_inv = generate_diagonal_preconditioner(A);
 
     auto result = preconditioned_conjugate_gradient(A, b, M_inv, n, 1e-6);
@@ -120,4 +98,3 @@ int main() {
 
     return 0;
 }
-
