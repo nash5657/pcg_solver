@@ -19,7 +19,7 @@ endif()
 
 
 # Add an executable
-add_executable(${PROJECT_NAME} main.cpp preconditioner.cpp matrix_generator.cpp)
+add_executable(${PROJECT_NAME} main.cpp preconditioner.cpp matrix_generator.cpp pcg_solver.cpp)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${EIGEN3_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} Eigen3::Eigen)

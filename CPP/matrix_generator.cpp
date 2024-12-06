@@ -1,36 +1,37 @@
 #include "matrix_generator.h"
-#include <iostream>
+#include <vector>
+#include <Eigen/Sparse>
+#include <Eigen/Dense>
 
-Matrix generate_matrix_A(int n) {
-    std::vector<std::vector<double>> A(n, std::vector<double>(n, 0.0));
+Eigen::SparseMatrix<double> generate_matrix_A(int n) {
+    std::vector<Eigen::Triplet<double>> triplets;
 
     for (int i = 0; i < n; ++i) {
-        if (i > 0) A[i][i - 1] = -1.0;  // Lower diagonal
-        A[i][i] = 2.0;                  // Main diagonal
-        if (i < n - 1) A[i][i + 1] = -1.0;  // Upper diagonal
+        if (i > 0) {
+            triplets.emplace_back(i, i - 1, -1.0); // Lower diagonal
+        }
+
+        if (i == n - 1) {
+            // For the last element A(n-1, n-1) = 1
+            triplets.emplace_back(i, i, 1.0);
+        } else {
+            // For all other diagonal elements A(i, i) = 2
+            triplets.emplace_back(i, i, 2.0);
+        }
+
+        if (i < n - 1) {
+            triplets.emplace_back(i, i + 1, -1.0); // Upper diagonal
+        }
     }
-    A[n - 1][n - 1] = 1.0;  // Adjust the last diagonal element
+
+    Eigen::SparseMatrix<double> A(n, n);
+    A.setFromTriplets(triplets.begin(), triplets.end());
     return A;
 }
 
-Vector generate_vector_b(int n) {
-    Vector b(n, 0.0);
-    b[0] = 1.0;
+
+Eigen::VectorXd generate_vector_b(int n) {
+    Eigen::VectorXd b = Eigen::VectorXd::Zero(n);
+    b[0] = 1.0; // Example RHS vector with 1 in the first position
     return b;
-}
-
-void print_matrix(const Matrix& A) {
-    for (const auto& row : A) {
-        for (double val : row) {
-            std::cout << val << " ";
-        }
-        std::cout << std::endl;
-    }
-}
-
-void print_vector(const Vector& v) {
-    for (double val : v) {
-        std::cout << val << " ";
-    }
-    std::cout << std::endl;
 }

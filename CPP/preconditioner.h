@@ -1,15 +1,12 @@
-#ifndef PRECONDITIONER_H
-#define PRECONDITIONER_H
+#pragma once
+#include <Eigen/Sparse>
 
-#include <vector>
+// Generate a diagonal preconditioner (Jacobi preconditioner)
+Eigen::SparseMatrix<double> generate_diagonal_preconditioner(const Eigen::SparseMatrix<double>& A);
 
-// Type alias for convenience
-using Vector = std::vector<double>;
-using Matrix = std::vector<std::vector<double>>;
+// Generate an Incomplete Cholesky (IC(0)) preconditioner
+Eigen::SparseMatrix<double> generate_incomplete_cholesky_preconditioner(const Eigen::SparseMatrix<double>& A);
 
-// Function declarations
-Matrix generate_diagonal_preconditioner(const Matrix& A);
-Matrix generate_incomplete_cholesky_preconditioner(const Matrix& A);
-void apply_preconditioner(const Matrix& M_inv, const Vector& r, Vector& result);
-
-#endif // PRECONDITIONER_H
+// Apply the IC(0) preconditioner: Solve M y = r with M = L L^T
+// Here you need a function to solve using L. You can implement forward and backward solves.
+Eigen::VectorXd apply_IC0_preconditioner(const Eigen::SparseMatrix<double>& L, const Eigen::VectorXd& r);

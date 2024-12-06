@@ -1,16 +1,13 @@
 #ifndef PCG_SOLVER_H
 #define PCG_SOLVER_H
 
-#include <vector>
-#include <utility>
+#include <Eigen/Sparse>
+#include <Eigen/Dense>
 
-using Vector = std::vector<double>;
-using Matrix = std::vector<std::vector<double>>;
-
-std::pair<Vector, int> preconditioned_conjugate_gradient(
-    const Matrix& A,
-    const Vector& b,
-    const Matrix& M_inv,
+std::pair<Eigen::VectorXd, int> preconditioned_conjugate_gradient(
+    const Eigen::SparseMatrix<double>& A,
+    const Eigen::VectorXd& b,
+    const Eigen::SparseMatrix<double>& M_inv,
     int max_iter,
     double tol = 1e-6
 );
