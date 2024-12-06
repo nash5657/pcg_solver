@@ -4,6 +4,7 @@
 #include <Eigen/Sparse>
 #include <Eigen/Dense>
 
+Eigen::SparseMatrix<double> readMtx(const std::string& filename) ;
 Eigen::SparseMatrix<double> generate_matrix_A(int n);
 Eigen::VectorXd generate_vector_b(int n);
 

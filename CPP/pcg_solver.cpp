@@ -4,14 +4,14 @@
 std::pair<Eigen::VectorXd, int> preconditioned_conjugate_gradient(
     const Eigen::SparseMatrix<double>& A,
     const Eigen::VectorXd& b,
-    const Eigen::SparseMatrix<double>& M_inv,
+    std::function<Eigen::VectorXd(const Eigen::VectorXd&)> apply_preconditioner,
     int max_iter,
     double tol
 ) {
     int n = b.size();
     Eigen::VectorXd x = Eigen::VectorXd::Zero(n); // Initial guess x0 = 0
     Eigen::VectorXd r = b - A * x;                // Initial residual
-    Eigen::VectorXd y = M_inv * r;                // Preconditioned residual
+    Eigen::VectorXd y = apply_preconditioner(r);  // Preconditioned residual
     Eigen::VectorXd p = y;                        // Search direction
 
     double mu_prev = r.dot(y);
@@ -28,7 +28,7 @@ std::pair<Eigen::VectorXd, int> preconditioned_conjugate_gradient(
             break;
         }
 
-        y = M_inv * r;                            // Apply preconditioner
+        y = apply_preconditioner(r);              // Apply preconditioner
         double mu = r.dot(y);                     // Updated scalar for direction
         double beta = mu / mu_prev;               // Compute new beta
         p = y + beta * p;                         // Update search direction

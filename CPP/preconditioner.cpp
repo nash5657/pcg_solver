@@ -3,19 +3,32 @@
 #include <Eigen/Dense>
 #include <Eigen/Cholesky>
 
-// Generate a diagonal preconditioner (Jacobi preconditioner)
-Eigen::SparseMatrix<double> generate_diagonal_preconditioner(const Eigen::SparseMatrix<double>& A) {
-    Eigen::SparseMatrix<double> M_inv(A.rows(), A.cols());
-    M_inv.reserve(Eigen::VectorXi::Constant(A.rows(), 1)); // Reserve one non-zero per row
-    for (int k = 0; k < A.outerSize(); ++k) {
-        for (Eigen::SparseMatrix<double>::InnerIterator it(A, k); it; ++it) {
-            if (it.row() == it.col() && it.value() != 0.0) {
-                M_inv.insert(it.row(), it.col()) = 1.0 / it.value();
-            }
+// // Generate a diagonal preconditioner (Jacobi preconditioner)
+// Eigen::SparseMatrix<double> generate_diagonal_preconditioner(const Eigen::SparseMatrix<double>& A) {
+//     Eigen::SparseMatrix<double> M_inv(A.rows(), A.cols());
+//     M_inv.reserve(Eigen::VectorXi::Constant(A.rows(), 1)); // Reserve one non-zero per row
+//     for (int k = 0; k < A.outerSize(); ++k) {
+//         for (Eigen::SparseMatrix<double>::InnerIterator it(A, k); it; ++it) {
+//             if (it.row() == it.col() && it.value() != 0.0) {
+//                 M_inv.insert(it.row(), it.col()) = 1.0 / it.value();
+//             }
+//         }
+//     }
+//     M_inv.makeCompressed();
+//     return M_inv;
+// }
+
+Eigen::VectorXd apply_jacobi_preconditioner(const Eigen::SparseMatrix<double>& A, const Eigen::VectorXd& r) {
+    int n = A.rows();
+    Eigen::VectorXd result(n);
+    result.setZero();
+    for (int i = 0; i < n; ++i) {
+        double diag = A.coeff(i, i); // Access the diagonal element
+        if (diag != 0.0) {
+            result[i] = r[i] / diag;
         }
     }
-    M_inv.makeCompressed();
-    return M_inv;
+    return result;
 }
 
 
@@ -142,59 +155,47 @@ Eigen::SparseMatrix<double> generate_incomplete_cholesky_preconditioner(const Ei
 // Apply the IC(0) preconditioner: we need to solve M y = r with M = L L^T.
 // This involves forward solve L z = r, and then backward solve L^T y = z.
 Eigen::VectorXd apply_IC0_preconditioner(const Eigen::SparseMatrix<double>& L, const Eigen::VectorXd& r) {
-    Eigen::VectorXd y = r;
-
-    // Forward solve: L z = r
-    for (int i = 0; i < L.rows(); i++) {
-        double sum = y[i];
-        for (Eigen::SparseMatrix<double>::InnerIterator it(L, i); it; ++it) {
-            int j = it.index();
-            if (j < i) {
-                sum -= it.value() * y[j];
-            } else if (j == i) {
-                // Diagonal
-                // We'll divide by L(i,i) after summation
-            } else {
-                break; // j>i no more contributions
-            }
-        }
-
-        // Divide by L(i,i)
-        double Lii = 0.0;
-        for (Eigen::SparseMatrix<double>::InnerIterator it(L, i); it; ++it) {
-            if (it.index() == i) {
-                Lii = it.value();
-                break;
-            }
-        }
-        if (Lii == 0.0) {
-            throw std::runtime_error("Zero diagonal in L during forward solve.");
-        }
-
-        y[i] = sum / Lii;
+if (L.rows() != L.cols() || L.rows() != r.size()) {
+        throw std::invalid_argument("Dimension mismatch");
     }
 
-    // Backward solve: L^T y = z (reuse y as z from forward step)
-    for (int i = L.rows()-1; i >= 0; i--) {
-        double sum = y[i];
-        double Lii = 0.0;
-        // Collect diagonal and subtract contributions from above
-        for (Eigen::SparseMatrix<double>::InnerIterator it(L, i); it; ++it) {
-            int j = it.index();
-            double val = it.value();
-            if (j == i) {
-                Lii = val;
-            } else if (j > i) {
-                sum -= val * y[j]; 
+    int n = L.rows();
+    Eigen::VectorXd y(n);
+    Eigen::VectorXd result(n);
+    y.setZero();
+    result.setZero();
+
+    // Forward substitution: L * y = r
+    for (int i = 0; i < n; ++i) {
+        double sum = r[i];
+        for (int j = 0; j < i; ++j) {
+            double val = L.coeff(i, j);  // zero if not present
+            if (val != 0.0) {
+                sum -= val * y[j];
             }
         }
-
-        if (Lii == 0.0) {
-            throw std::runtime_error("Zero diagonal in L during backward solve.");
+        double diag = L.coeff(i, i);
+        if (diag == 0.0) {
+            throw std::runtime_error("Zero diagonal element encountered in L.");
         }
-
-        y[i] = sum / Lii;
+        y[i] = sum / diag;
     }
 
-    return y;
+    // Backward substitution: L^T * result = y
+    for (int i = n - 1; i >= 0; --i) {
+        double sum = y[i];
+        for (int j = i + 1; j < n; ++j) {
+            double val = L.coeff(j, i);
+            if (val != 0.0) {
+                sum -= val * result[j];
+            }
+        }
+        double diag = L.coeff(i, i);
+        if (diag == 0.0) {
+            throw std::runtime_error("Zero diagonal element encountered in L.");
+        }
+        result[i] = sum / diag;
+    }
+
+    return result;
 }

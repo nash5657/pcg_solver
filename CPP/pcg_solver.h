@@ -7,7 +7,7 @@
 std::pair<Eigen::VectorXd, int> preconditioned_conjugate_gradient(
     const Eigen::SparseMatrix<double>& A,
     const Eigen::VectorXd& b,
-    const Eigen::SparseMatrix<double>& M_inv,
+    std::function<Eigen::VectorXd(const Eigen::VectorXd&)> apply_preconditioner,
     int max_iter,
     double tol = 1e-6
 );

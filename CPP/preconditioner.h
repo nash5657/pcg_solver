@@ -2,7 +2,8 @@
 #include <Eigen/Sparse>
 
 // Generate a diagonal preconditioner (Jacobi preconditioner)
-Eigen::SparseMatrix<double> generate_diagonal_preconditioner(const Eigen::SparseMatrix<double>& A);
+//Eigen::SparseMatrix<double> generate_diagonal_preconditioner(const Eigen::SparseMatrix<double>& A);
+Eigen::VectorXd apply_jacobi_preconditioner(const Eigen::SparseMatrix<double>& A, const Eigen::VectorXd& r);
 
 // Generate an Incomplete Cholesky (IC(0)) preconditioner
 Eigen::SparseMatrix<double> generate_incomplete_cholesky_preconditioner(const Eigen::SparseMatrix<double>& A);
