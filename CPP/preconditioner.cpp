@@ -19,15 +19,16 @@
 // }
 
 Eigen::VectorXd apply_jacobi_preconditioner(const Eigen::SparseMatrix<double>& A, const Eigen::VectorXd& r) {
-    int n = A.rows();
-    Eigen::VectorXd result(n);
-    result.setZero();
-    for (int i = 0; i < n; ++i) {
-        double diag = A.coeff(i, i); // Access the diagonal element
-        if (diag != 0.0) {
-            result[i] = r[i] / diag;
-        }
+    if (A.rows() != A.cols()) {
+        throw std::invalid_argument("Matrix A must be square.");
     }
+
+    Eigen::VectorXd diag = A.diagonal(); // Extract diagonal elements of A
+    if (diag.minCoeff() == 0) { 
+        throw std::runtime_error("Matrix A contains zero diagonal elements, making Jacobi preconditioning invalid.");
+    }
+
+    Eigen::VectorXd result = r.cwiseQuotient(diag); // Element-wise division of r by diag
     return result;
 }
 
