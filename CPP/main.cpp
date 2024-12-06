@@ -25,7 +25,7 @@ double dot(const Vector& a, const Vector& b) {
 std::pair<Vector, int> preconditioned_conjugate_gradient(
     const Matrix& A,
     const Vector& b,
-    const Matrix& M_inv,
+    std::function<void(const Vector&, Vector&)> preconditioner,
     int max_iter,
     double tol
 ) {
@@ -38,7 +38,7 @@ std::pair<Vector, int> preconditioned_conjugate_gradient(
         r[i] = b[i] - r[i];
     }
 
-    apply_preconditioner(M_inv, r, y);
+    preconditioner(r, y);
     p = y;
 
     double mu_prev = dot(r, y);
@@ -60,7 +60,7 @@ std::pair<Vector, int> preconditioned_conjugate_gradient(
             break;
         }
 
-        apply_preconditioner(M_inv, r, y);
+        preconditioner(r, y);
         double mu = dot(r, y);
         double beta = mu / mu_prev;
 
@@ -75,18 +75,28 @@ std::pair<Vector, int> preconditioned_conjugate_gradient(
 }
 
 int main() {
-    int n = 1000; // Size of the system
 
-    auto A = generate_matrix_A(n);
+    auto A = loadMatrix("gyro_k.mtx");
+    int n = A.size();
+    // std::cout << "size of A: " << n << std::endl;
+    // for(int i = 0; i < 10; i++){
+    //     for(int j = 0; j < 10; j++){
+    //         std::cout << A[i][j] << " ";
+    //     }
+    //     std::cout << std::endl;
+    // }
+    // return 0;
+    // int n = 1000; // Size of the system
+    // auto A = generate_matrix_A(n);
     auto b = generate_vector_b(n);
 
-    // Use Incomplete Cholesky preconditioner
-    Matrix M_inv = generate_incomplete_cholesky_preconditioner(A);
-
     //Use Jacobi preconditioner
-    //Matrix M_inv = generate_diagonal_preconditioner(A);
+    // Matrix M_inv = generate_diagonal_preconditioner(A);
+    auto result = preconditioned_conjugate_gradient(A, b, [&A](auto&r, auto&y) { apply_jacobi_preconditioner(A, r, y);}, n, 1e-6);
 
-    auto result = preconditioned_conjugate_gradient(A, b, M_inv, n, 1e-6);
+    // Use Incomplete Cholesky preconditioner
+    // Matrix L = generate_incomplete_cholesky_preconditioner(A);
+    // auto result = preconditioned_conjugate_gradient(A, b, [&L](auto&r, auto&y) {apply_preconditioner(L, r, y);}, n, 1e-6);
     auto x = result.first;
     auto iterations = result.second;
 

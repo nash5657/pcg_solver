@@ -3,15 +3,24 @@
 #include <cmath>
 
 // Generate a diagonal preconditioner (Jacobi preconditioner)
-Matrix generate_diagonal_preconditioner(const Matrix& A) {
+// Matrix generate_diagonal_preconditioner(const Matrix& A) {
+//     int n = A.size();
+//     Matrix M_inv(n, Vector(n, 0.0));
+//     for (int i = 0; i < n; ++i) {
+//         if (A[i][i] != 0.0) {
+//             M_inv[i][i] = 1.0 / A[i][i];
+//         }
+//     }
+//     return M_inv;
+// }
+
+void apply_jacobi_preconditioner(const Matrix& A, const Vector& r, Vector& result) {
     int n = A.size();
-    Matrix M_inv(n, Vector(n, 0.0));
     for (int i = 0; i < n; ++i) {
         if (A[i][i] != 0.0) {
-            M_inv[i][i] = 1.0 / A[i][i];
+            result[i] = r[i] / A[i][i];
         }
     }
-    return M_inv;
 }
 
 // Generate an incomplete Cholesky preconditioner

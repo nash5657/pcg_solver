@@ -8,6 +8,7 @@ using Vector = std::vector<double>;
 using Matrix = std::vector<std::vector<double>>;
 
 // Function declarations
+Matrix loadMatrix(const std::string& filename);
 Matrix generate_matrix_A(int n);
 Vector generate_vector_b(int n);
 void print_matrix(const Matrix& A);
