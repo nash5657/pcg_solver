@@ -156,7 +156,7 @@ Eigen::SparseMatrix<double> generate_incomplete_cholesky_preconditioner(const Ei
 // Apply the IC(0) preconditioner: we need to solve M y = r with M = L L^T.
 // This involves forward solve L z = r, and then backward solve L^T y = z.
 Eigen::VectorXd apply_IC0_preconditioner(const Eigen::SparseMatrix<double>& L, const Eigen::VectorXd& r) {
-if (L.rows() != L.cols() || L.rows() != r.size()) {
+    if (L.rows() != L.cols() || L.rows() != r.size()) {
         throw std::invalid_argument("Dimension mismatch");
     }
 
