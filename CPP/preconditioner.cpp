@@ -65,6 +65,7 @@ Eigen::SparseMatrix<double> generate_incomplete_cholesky_preconditioner(const Ei
     double* Lx = const_cast<double*>(L.valuePtr());
 
     // We'll do a standard Cholesky loop, but only for entries in L.
+    #pragma omp parallel for shared(Lp, Li, Lx) schedule(dynamic)
     for (int i = 0; i < n; ++i) {
         // First compute L(i,i)
         double sum_diag = 0.0;
