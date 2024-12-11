@@ -1,9 +1,5 @@
 #include "pcg_solver.h"
 #include <iostream>
-#include <Eigen/Sparse>
-#include <Eigen/Dense>
-#include <omp.h>
-#include <functional>
 
 std::pair<Eigen::VectorXd, int> preconditioned_conjugate_gradient(
     const Eigen::SparseMatrix<double>& A,
@@ -22,16 +18,7 @@ std::pair<Eigen::VectorXd, int> preconditioned_conjugate_gradient(
     int k = 0;
 
     for (k = 1; k <= max_iter; ++k) {
-        Eigen::VectorXd z(n);
-        // Parallelize matrix-vector multiplication
-        #pragma omp parallel for
-        for (int i = 0; i < A.outerSize(); ++i) {
-            z[i] = 0;
-            for (Eigen::SparseMatrix<double>::InnerIterator it(A, i); it; ++it) {
-                z[i] += it.value() * p[it.index()];
-            }
-        }
-
+        Eigen::VectorXd z = A * p;                // Matrix-vector  /focus here
         double nu = mu_prev / p.dot(z);           // Step size
 
         x += nu * p;                              // Update solution
@@ -42,14 +29,7 @@ std::pair<Eigen::VectorXd, int> preconditioned_conjugate_gradient(
         }
 
         y = apply_preconditioner(r);              // Apply preconditioner
-        
-        // Parallelize dot product
-        double mu = 0.0;
-        #pragma omp parallel for reduction(+:mu)
-        for (int i = 0; i < n; ++i) {
-            mu += r[i] * y[i];
-        }
-
+        double mu = r.dot(y);                     // Updated scalar for direction   // focus here
         double beta = mu / mu_prev;               // Compute new beta
         p = y + beta * p;                         // Update search direction
         mu_prev = mu;

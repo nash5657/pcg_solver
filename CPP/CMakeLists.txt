@@ -19,17 +19,20 @@ endif()
 add_executable(${PROJECT_NAME} main.cpp preconditioner.cpp matrix_generator.cpp pcg_solver.cpp)
 
 # Manually specify OpenMP flags and libraries for macOS
-# Manually specify OpenMP flags and libraries for macOS
 if (APPLE)
-    # Separate the OpenMP flag and include directory
     set(OpenMP_CXX_FLAGS "-fopenmp")
     set(OpenMP_INCLUDE_DIR "/opt/homebrew/opt/llvm/include")
     set(OpenMP_LIBRARIES "/opt/homebrew/opt/llvm/lib/libomp.dylib")
-    
-    # Add OpenMP flags to the target
     target_compile_options(${PROJECT_NAME} PRIVATE ${OpenMP_CXX_FLAGS})
     target_include_directories(${PROJECT_NAME} PRIVATE ${OpenMP_INCLUDE_DIR})
     target_link_libraries(${PROJECT_NAME} PRIVATE ${OpenMP_LIBRARIES})
+
+    # Add standard library paths (fix for macOS)
+    target_include_directories(${PROJECT_NAME} PRIVATE /Library/Developer/CommandLineTools/usr/include/c++/v1)
+    target_include_directories(${PROJECT_NAME} PRIVATE /opt/homebrew/opt/llvm/include/c++/v1)
+
+    # Explicitly set the compiler (if necessary)
+    set(CMAKE_CXX_COMPILER "/opt/homebrew/opt/llvm/bin/clang++")
 else()
     # Standard OpenMP configuration for non-Apple platforms
     find_package(OpenMP REQUIRED)
@@ -39,12 +42,11 @@ else()
     target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
-
-
 # Include Eigen3 and link libraries
 target_include_directories(${PROJECT_NAME} PRIVATE ${EIGEN3_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} PRIVATE Eigen3::Eigen)
 
-# Add diagnostic messages
+# Diagnostic messages
 message(STATUS "Using OpenMP_CXX_FLAGS: ${OpenMP_CXX_FLAGS}")
-message(STATUS "Using OpenMP_CXX_LIB_NAMES: ${OpenMP_CXX_LIB_NAMES}")
+message(STATUS "Eigen include directory: ${EIGEN3_INCLUDE_DIR}")
+message(STATUS "Using compiler: ${CMAKE_CXX_COMPILER}")

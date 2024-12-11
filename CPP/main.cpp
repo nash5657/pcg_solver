@@ -1,15 +1,15 @@
-#include <iostream>
-#include <Eigen/Sparse>
-#include <Eigen/Dense>
 #include "matrix_generator.h"
 #include "preconditioner.h"
 #include "pcg_solver.h"
+#include <iostream>
+#include <Eigen/Sparse>
+#include <Eigen/Dense>
 #include <omp.h>
 #include <chrono> // For timing
 
 int main() {
     omp_set_num_threads(16);
-    int n = 100; // Size of the system
+    int n = 10000; // Size of the system
     auto A = generate_matrix_A(n);
 
     //auto A = readMtx("gyro_k.mtx");
@@ -27,8 +27,7 @@ int main() {
 
 // Measure time for the solver
     auto solver_start_time = std::chrono::high_resolution_clock::now();
-    auto [x, iterations] = preconditioned_conjugate_gradient(
-        A, b, [&L](auto& r) { return apply_IC0_preconditioner(L, r); }, n, 1e-6);
+    auto [x, iterations] = preconditioned_conjugate_gradient(A, b, [&L](auto& r) { return apply_IC0_preconditioner(L, r); }, n, 1e-6);
     auto solver_end_time = std::chrono::high_resolution_clock::now();
     auto solver_duration = std::chrono::duration_cast<std::chrono::milliseconds>(solver_end_time - solver_start_time);
 

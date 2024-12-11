@@ -2,13 +2,10 @@
 #include <vector>
 #include <Eigen/Sparse>
 #include <Eigen/Dense>
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <vector>
-#include <Eigen/Sparse>
 
 Eigen::SparseMatrix<double> readMtx(const std::string& filename) {
     std::ifstream infile(filename);
