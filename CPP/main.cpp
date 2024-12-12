@@ -8,7 +8,7 @@
 #include <chrono> // For timing
 
 int main() {
-    omp_set_num_threads(64);
+    omp_set_num_threads(32);
     //int n = 100000; // Size of the system
     //auto A = generate_matrix_A(n);
     auto A = readMtx("gyro_k.mtx");
