@@ -1,13 +1,7 @@
 #pragma once
 #include <Eigen/Sparse>
+#include <Eigen/IterativeLinearSolvers>
 
-// Generate a diagonal preconditioner (Jacobi preconditioner)
-//Eigen::SparseMatrix<double> generate_diagonal_preconditioner(const Eigen::SparseMatrix<double>& A);
 Eigen::VectorXd apply_jacobi_preconditioner(const Eigen::SparseMatrix<double>& A, const Eigen::VectorXd& r);
-
-// Generate an Incomplete Cholesky (IC(0)) preconditioner
-Eigen::SparseMatrix<double> generate_incomplete_cholesky_preconditioner(const Eigen::SparseMatrix<double>& A);
-
-// Apply the IC(0) preconditioner: Solve M y = r with M = L L^T
-// Here you need a function to solve using L. You can implement forward and backward solves.
-Eigen::VectorXd apply_IC0_preconditioner(const Eigen::SparseMatrix<double>& L, const Eigen::VectorXd& r);
+void generate_incomplete_cholesky_preconditioner(const Eigen::SparseMatrix<double>& A, Eigen::IncompleteCholesky<double>& ic);
+Eigen::VectorXd apply_IC0_preconditioner(const Eigen::IncompleteCholesky<double>& ic, const Eigen::VectorXd& r);

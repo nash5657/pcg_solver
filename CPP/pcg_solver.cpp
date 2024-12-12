@@ -21,9 +21,9 @@ std::pair<Eigen::VectorXd, int> preconditioned_conjugate_gradient(
     double mu_prev = r.dot(y);
     int k = 0;
 
+    // Parallelize the matrix-vector product
     for (k = 1; k <= max_iter; ++k) {
         Eigen::VectorXd z(n);
-        // Parallelize matrix-vector multiplication
         #pragma omp parallel for
         for (int i = 0; i < A.outerSize(); ++i) {
             z[i] = 0;
@@ -43,8 +43,9 @@ std::pair<Eigen::VectorXd, int> preconditioned_conjugate_gradient(
 
         y = apply_preconditioner(r);              // Apply preconditioner
         
-        // Parallelize dot product
         double mu = 0.0;
+
+        // Parallelize the dot product
         #pragma omp parallel for reduction(+:mu)
         for (int i = 0; i < n; ++i) {
             mu += r[i] * y[i];
