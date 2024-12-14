@@ -32,3 +32,21 @@ void generate_incomplete_cholesky_preconditioner(const Eigen::SparseMatrix<doubl
 Eigen::VectorXd apply_IC0_preconditioner(const Eigen::IncompleteCholesky<double>& ic, const Eigen::VectorXd& r) {
     return ic.solve(r);
 }
+// Incomplete LU preconditioner
+void generate_incomplete_lu_preconditioner(const Eigen::SparseMatrix<double>& A, Eigen::SparseLU<Eigen::SparseMatrix<double>>& ilu) {
+    if (A.rows() != A.cols()) {
+        throw std::runtime_error("Matrix must be square for ILU.");
+    }
+
+    // Compute the ILU preconditioner
+    ilu.analyzePattern(A);
+    ilu.factorize(A);
+
+    if (ilu.info() != Eigen::Success) {
+        throw std::runtime_error("Incomplete LU factorization failed!");
+    }
+}
+
+Eigen::VectorXd apply_ILU_preconditioner(const Eigen::SparseLU<Eigen::SparseMatrix<double>>& ilu, const Eigen::VectorXd& r) {
+    return ilu.solve(r);
+}
